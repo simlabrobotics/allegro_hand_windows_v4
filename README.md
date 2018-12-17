@@ -1,8 +1,7 @@
-allegro_hand_windows
+allegro_hand_windows (v4)
 ====================
 
 This application is lightweight control and communication software for the Allegro Hand (AH) using Windows.
-Currently this software only works with PEAK CAN-USB interfaces.
 
 myAllegroHand*.exe:
  Allegro Hand control and CAN communication module.
@@ -21,12 +20,7 @@ Instructions
  5. Open myAllegroHand.cpp and, near the top, find comment '// USER HAND CONFIGURATION' and the constants below it
 
  6. const bool RIGHT_HAND: Set to 'true' if using a right AH and false if using left
- 7. const int HAND_VERSION: For version 2.x, set to '2', for version 3.x, set to '3', etc.
- 8. const int enc_offset[MAX_DOF]: Encoder offsets
- 9. const double enc_dir[MAX_DOF]: Encoder Directions (Signs)
- 10. const double motor_dir[MAX_DOF]: Motor Directions (Signs)
-
- * Offsets and directions for your hand can be found at simlab.co.kr/wiki/allegrohand, from the DMLs for your hand, or via email <alexalspach@simlab.com>.
+ 7. const int HAND_VERSION: For version 4.x, set to '4'.
  
 You are now ready to compile, plug in and turn on your hand, and test the program.
 
@@ -73,5 +67,5 @@ For more information regarding setting the project properties, etc., please see 
 
 **Questions?**
 
-Please email Alex Alspach
-alexalspach@simlab.co.kr
+Please email Sean Yi
+seanyi@wonikrobotics.com
