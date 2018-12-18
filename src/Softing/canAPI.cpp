@@ -25,6 +25,7 @@ CANAPI_BEGIN
 
 
 #define CH_COUNT			(int)2 // number of CAN channels
+unsigned char CAN_ID = 0;
 static CAN_HANDLE hCAN[CH_COUNT] = {-1, -1}; // CAN channel handles
 
 #define	STD		(bool)0
@@ -114,7 +115,7 @@ int canWrite(CAN_HANDLE handle,
 	if (handle < 0)
 		return -1;
 
-	int ret = CANL2_send_data(handle, id, mode, dlc, (unsigned char*)msg);
+	int ret = CANL2_send_data(handle, (id << 2) | CAN_ID, mode, dlc, (unsigned char*)msg);
 	if (ret)
 	{
 		printf("CAN write error\n");
@@ -129,7 +130,7 @@ int canWriteRTR(CAN_HANDLE handle, unsigned long id, int mode)
 	if (handle < 0)
 		return -1;
 
-	int ret = CANL2_send_remote(handle, id, mode, 0);
+	int ret = CANL2_send_remote(handle, (id << 2) | CAN_ID, mode, 0);
 	if (ret)
 	{
 		printf("CAN write error\n");
@@ -448,6 +449,7 @@ int command_can_close(int ch)
 
 int command_can_set_id(int ch, unsigned char can_id)
 {
+	CAN_ID = can_id;
 	return 0;
 }
 
@@ -634,7 +636,7 @@ int get_message(int ch, int* id, int* len, unsigned char* data, int blocking)
 	switch (ret)
 	{
 	case CANL2_RA_XTD_DATAFRAME :
-		*id = param.Ident;
+		*id = (param.Ident & 0xfffffffc) >> 2;
 		*len = param.DataLength;
 		data[0] = param.RCV_data[0];
 		data[1] = param.RCV_data[1];
@@ -647,7 +649,7 @@ int get_message(int ch, int* id, int* len, unsigned char* data, int blocking)
 		break;
 
 	case CANL2_RA_DATAFRAME:
-		*id = param.Ident;
+		*id = (param.Ident & 0xfffffffc) >> 2;
 		*len = param.DataLength;
 		data[0] = param.RCV_data[0];
 		data[1] = param.RCV_data[1];

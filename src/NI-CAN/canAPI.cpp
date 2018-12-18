@@ -24,6 +24,7 @@ CANAPI_BEGIN
 
 
 #define CH_COUNT			(int)1 // number of CAN channels
+unsigned char CAN_ID = 0;
 int hd[CH_COUNT];
 
 #define canMSG_MASK             0x00ff      // Used to mask the non-info bits
@@ -116,7 +117,7 @@ int canWriteRTR(int handle,	long id)
 		return -1;
 
 	TxFrame.IsRemote = NC_FRMTYPE_REMOTE;
-	TxFrame.ArbitrationId = id;
+	TxFrame.ArbitrationId = (id << 2) | CAN_ID;
 	TxFrame.DataLength = 0;
 	Status = ncWrite(handle, sizeof(NCTYPE_CAN_FRAME), &TxFrame);
 	if (Status < 0)
@@ -137,7 +138,7 @@ int canWrite(int handle,
 		return -1;
 
 	TxFrame.IsRemote = NC_FRMTYPE_DATA;
-	TxFrame.ArbitrationId = id;
+	TxFrame.ArbitrationId = (id << 2) | CAN_ID;
 	TxFrame.DataLength = dlc;
 	for (int i=0; i<dlc; i++)
 		TxFrame.Data[i] = ((NCTYPE_UINT8_P)msg)[i];
@@ -175,7 +176,7 @@ int canRead(int handle,
 		return Status;
 	}
 
-	(*id) = RxFrame.ArbitrationId;
+	(*id) = (RxFrame.ArbitrationId & 0xfffffffc) >> 2;
 	//(*time) = (FILETIME)(RxFrame.Timestamp);
 	(*dlc) = RxFrame.DataLength;
 	for (int i=0; i<RxFrame.DataLength; i++)
@@ -350,6 +351,7 @@ int command_can_close(int ch)
 
 int command_can_set_id(int ch, unsigned char can_id)
 {
+	CAN_ID = can_id;
 	return 0;
 }
 

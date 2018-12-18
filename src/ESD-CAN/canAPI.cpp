@@ -23,6 +23,8 @@ CANAPI_BEGIN
 
 #define CH_COUNT			(int)4 // number of CAN channels
 
+unsigned char CAN_ID = 0;
+
 static NTCAN_HANDLE canDev[CH_COUNT] = { // CAN channel handles
 	(NTCAN_HANDLE)-1,
 	(NTCAN_HANDLE)-1,
@@ -110,7 +112,7 @@ int canReadMsg(int bus, int *id, int *len, unsigned char *data, int blocking){
             return(2);
     }
     if(msgCt == 1){
-        *id = msg.id;
+		*id = (msg.id & 0xfffffffc) >> 2;
         *len = msg.len;
         for(i = 0; i < msg.len; i++)
             data[i] = msg.data[i];
@@ -127,7 +129,7 @@ int canSendMsg(int bus, int id, char len, unsigned char *data, int blocking){
     long    msgCt = 1;
     int     i;
     
-    msg.id = id;
+	msg.id = (id << 2) | CAN_ID;
     msg.len = len & 0x0F;
     for(i = 0; i < len; i++)
         msg.data[i] = data[i];
@@ -198,6 +200,7 @@ int command_can_close(int ch)
 
 int command_can_set_id(int ch, unsigned char can_id)
 {
+	CAN_ID = can_id;
 	return 0;
 }
 
