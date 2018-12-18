@@ -30,6 +30,7 @@ CANAPI_BEGIN
 /*       Global file-scope variables       */
 /*=========================================*/
 
+unsigned char CAN_ID = 0;
 CANHANDLE canDev[MAX_BUS] = { 0, };
 
 /*==========================================*/
@@ -156,7 +157,7 @@ int canReadMsg(CANHANDLE h, int *id, int *len, unsigned char *data, int blocking
 		return status;
 	}
 
-	*id = msg.id;
+	*id = (msg.id & 0xfffffffc) >> 2;
 	*len = msg.len;
 	for(i = 0; i < msg.len; i++)
 		data[i] = msg.data[i];
@@ -169,7 +170,7 @@ int canSendMsg(CANHANDLE h, int id, char len, unsigned char *data, int blocking)
 	CAN_STATUS status;
 	int i;
 
-	msg.id = id;
+	msg.id = (id << 2) | CAN_ID;
 	msg.len = len & 0x0F;
 	for(i = 0; i < len; i++)
         msg.data[i] = data[i];
@@ -194,7 +195,7 @@ int canSendMsgRTR(CANHANDLE h, int id, int blocking) {
 	CAN_STATUS status;
 	int i;
 
-	msg.id = id;
+	msg.id = (id << 2) | CAN_ID;
 	msg.len = 0;
 	msg.flags = 0x40; // CANMSG_EXTENDED: 0x80, CANMSG_RTR: 0x40
 
@@ -267,6 +268,7 @@ int command_can_close(int ch)
 
 int command_can_set_id(int ch, unsigned char can_id)
 {
+	CAN_ID = can_id;
 	return 0;
 }
 

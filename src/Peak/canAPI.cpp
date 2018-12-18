@@ -35,6 +35,7 @@ CANAPI_BEGIN
 /*=========================================*/
 /*       Global file-scope variables       */
 /*=========================================*/
+
 unsigned char CAN_ID = 0;
 TPCANHandle canDev[MAX_BUS] = {
 	PCAN_NONEBUS, // Undefined/default value for a PCAN bus

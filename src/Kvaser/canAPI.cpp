@@ -22,6 +22,7 @@ CANAPI_BEGIN
 
 
 #define CH_COUNT			(int)2 // number of CAN channels
+unsigned char CAN_ID = 0;
 static int hCAN[CH_COUNT] = {-1, -1}; // CAN channel handles
 
 #define	STD		(bool)0
@@ -101,6 +102,7 @@ int command_can_close(int ch)
 
 int command_can_set_id(int ch, unsigned char can_id)
 {
+	CAN_ID = can_id;
 	return 0;
 }
 
@@ -113,7 +115,7 @@ int command_servo_on(int ch)
 	int ret;
 
 	Txid = ID_CMD_SYSTEM_ON;
-	ret = canWrite(hCAN[ch - 1], Txid, data, 0, STD);
+	ret = canWrite(hCAN[ch - 1], (Txid << 2) | CAN_ID, data, 0, STD);
 
 	return ret;
 }
@@ -127,7 +129,7 @@ int command_servo_off(int ch)
 	int ret;
 
 	Txid = ID_CMD_SYSTEM_OFF;
-	ret = canWrite(hCAN[ch - 1], Txid, data, 0, STD);
+	ret = canWrite(hCAN[ch - 1], (Txid << 2) | CAN_ID, data, 0, STD);
 
 	return ret;
 }
@@ -150,7 +152,7 @@ int command_set_torque(int ch, int findex, short* pwm)
 
 		Txid = ID_CMD_SET_TORQUE_1 + findex;
 
-		ret = canWrite(hCAN[ch - 1], Txid, (unsigned char *)duty, 8, STD);
+		ret = canWrite(hCAN[ch - 1], (Txid << 2) | CAN_ID, (unsigned char *)duty, 8, STD);
 	}
 	else
 		return -1;
@@ -176,7 +178,7 @@ int command_set_pose(int ch, int findex, short* jposition)
 
 		Txid = ID_CMD_SET_POSE_1 + findex;
 
-		ret = canWrite(hCAN[ch - 1], Txid, (unsigned char *)pose, 8, STD);
+		ret = canWrite(hCAN[ch - 1], (Txid << 2) | CAN_ID, (unsigned char *)pose, 8, STD);
 	}
 	else
 		return -1;
@@ -205,7 +207,7 @@ int command_set_period(int ch, short* period)
 		msg.imu = 0;
 		msg.temp = 0;
 	}
-	ret = canWrite(hCAN[ch - 1], Txid, (unsigned char *)&msg, 6, STD);
+	ret = canWrite(hCAN[ch - 1], (Txid << 2) | CAN_ID, (unsigned char *)&msg, 6, STD);
 
 	return ret;
 }
@@ -222,7 +224,7 @@ int command_set_device_id(int ch, unsigned char did)
 	msg.set = 0x01;
 	msg.did = did;
 	msg.baudrate = 0;
-	ret = canWrite(hCAN[ch - 1], Txid, (unsigned char *)&msg, 6, STD);
+	ret = canWrite(hCAN[ch - 1], (Txid << 2) | CAN_ID, (unsigned char *)&msg, 6, STD);
 
 	return ret;
 }
@@ -240,7 +242,7 @@ int command_set_rs485_baudrate(int ch, unsigned int baudrate)
 	msg.set = 0x02;
 	msg.did = 0;
 	msg.baudrate = baudrate;
-	ret = canWrite(hCAN[ch - 1], Txid, (unsigned char *)&msg, 6, STD);
+	ret = canWrite(hCAN[ch - 1], (Txid << 2) | CAN_ID, (unsigned char *)&msg, 6, STD);
 
 	return ret;
 }
@@ -250,7 +252,7 @@ int request_hand_information(int ch)
 	assert(ch >= 0 && ch < CH_COUNT);
 
 	long Txid = ID_RTR_HAND_INFO;
-	int ret = canWrite(ch, Txid, NULL, 0, STD);
+	int ret = canWrite(ch, (Txid << 2) | CAN_ID, NULL, 0, STD);
 
 	return ret;
 }
@@ -260,7 +262,7 @@ int request_hand_serial(int ch)
 	assert(ch >= 0 && ch < CH_COUNT);
 
 	long Txid = ID_RTR_SERIAL;
-	int ret = canWrite(ch, Txid, NULL, 0, STD);
+	int ret = canWrite(ch, (Txid << 2) | CAN_ID, NULL, 0, STD);
 
 	return ret;
 }
@@ -270,7 +272,7 @@ int request_finger_pose(int ch, int findex)
 	assert(findex >= 0 && findex < NUM_OF_FINGERS);
 
 	long Txid = ID_RTR_FINGER_POSE + findex;
-	int ret = canWrite(ch, Txid, NULL, 0, STD);
+	int ret = canWrite(ch, (Txid << 2) | CAN_ID, NULL, 0, STD);
 
 	return ret;
 }
@@ -280,7 +282,7 @@ int request_imu_data(int ch)
 	assert(ch >= 0 && ch < CH_COUNT);
 
 	long Txid = ID_RTR_IMU_DATA;
-	int ret = canWrite(ch, Txid, NULL, 0, STD);
+	int ret = canWrite(ch, (Txid << 2) | CAN_ID, NULL, 0, STD);
 
 	return ret;
 }
@@ -292,7 +294,7 @@ int request_temperature(int ch, int sindex)
 	assert(sindex >= 0 && sindex < NUM_OF_TEMP_SENSORS);
 
 	long Txid = ID_RTR_TEMPERATURE + sindex;
-	int ret = canWrite(ch, Txid, NULL, 0, STD);
+	int ret = canWrite(ch, (Txid << 2) | CAN_ID, NULL, 0, STD);
 
 	return ret;
 }
@@ -313,7 +315,7 @@ int get_message(int ch, int* id, int* len, unsigned char* data, int blocking)
 	//for(int nd=0; nd<(int)dlc; nd++) printf(" %3d ", rdata[nd]);
 	//printf("\n");
 
-	*id = Rxid;
+	*id = (Rxid & 0xfffffffc) >> 2;
 	*len = (int)dlc;
 	for(int nd=0; nd<(int)dlc; nd++) data[nd] = rdata[nd];
 

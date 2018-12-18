@@ -26,6 +26,7 @@ CANAPI_BEGIN
 
 #define CH_COUNT			(int)2 // number of CAN channels
 
+unsigned char CAN_ID = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // global variables
@@ -64,7 +65,7 @@ int canWrite(HANDLE handle,
 	UINT8   i;
 
 	sCanMsg.dwTime   = 0;
-	sCanMsg.dwMsgId  = id;    // CAN message identifier
+	sCanMsg.dwMsgId  = (id << 2) | CAN_ID;    // CAN message identifier
 
 	sCanMsg.uMsgInfo.Bytes.bType  = CAN_MSGTYPE_DATA;
 	sCanMsg.uMsgInfo.Bytes.bFlags = CAN_MAKE_MSGFLAGS(dlc,0,0,0,mode);
@@ -123,9 +124,9 @@ int command_can_close(int ch)
 	return 0;
 }
 
-
 int command_can_set_id(int ch, unsigned char can_id)
 {
+	CAN_ID = can_id;
 	return 0;
 }
 
@@ -319,7 +320,7 @@ int get_message(int ch, int* id, int* len, unsigned char* data, int blocking)
 		{
 			if (sCanMsg.uMsgInfo.Bits.rtr == 0)
 			{
-				*id = sCanMsg.dwMsgId;
+				*id = (sCanMsg.dwMsgId & 0xfffffffc) >> 2;
 				*len = (int)( sCanMsg.uMsgInfo.Bits.dlc );
 				for(int nd=0; nd<(*len); nd++) data[nd] = sCanMsg.abData[nd];
 
