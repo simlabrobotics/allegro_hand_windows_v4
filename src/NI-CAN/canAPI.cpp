@@ -26,7 +26,6 @@ CANAPI_BEGIN
 #define CH_COUNT			(int)1 // number of CAN channels
 int hd[CH_COUNT];
 
-
 #define canMSG_MASK             0x00ff      // Used to mask the non-info bits
 #define canMSG_RTR              0x0001      // Message is a remote request
 #define canMSG_STD              0x0002      // Message has a standard ID
@@ -36,7 +35,6 @@ int hd[CH_COUNT];
 #define canMSG_ERROR_FRAME      0x0020      // Message is an error frame
 #define canMSG_TXACK            0x0040      // Message is a TX ACK (msg is really sent)
 #define canMSG_TXRQ             0x0080      // Message is a TX REQUEST (msg is transfered to the chip)
-
 
 
 //#define _DUMP_RXFRAME (1)
@@ -164,7 +162,7 @@ int canRead(int handle,
 
 	memset(&RxFrame, 0, sizeof(NCTYPE_CAN_FRAME));
 	//RxFrame.FrameType = NC_FRMTYPE_DATA;
-	RxFrame.DataLength = *dlc;
+	//RxFrame.DataLength = *dlc;
 	Status = ncRead(handle, sizeof(NCTYPE_CAN_STRUCT), &RxFrame);
 	if (Status < 0 || NC_FRMTYPE_DATA != RxFrame.FrameType)
 	{
@@ -208,8 +206,8 @@ int canReadWait(int handle,
 	}
 
 	memset(&RxFrame, 0, sizeof(NCTYPE_CAN_FRAME));
-	RxFrame.FrameType = NC_FRMTYPE_DATA;
-	RxFrame.DataLength = *dlc;
+	//RxFrame.FrameType = NC_FRMTYPE_DATA;
+	//RxFrame.DataLength = *dlc;
 	Status = ncRead(handle, sizeof(NCTYPE_CAN_STRUCT), &RxFrame);
 	if (Status < 0)
 	{
@@ -487,7 +485,7 @@ int command_set_rs485_baudrate(int ch, unsigned int baudrate)
 int request_hand_information(int ch)
 {
 	long Txid = ID_RTR_HAND_INFO;
-	int ret = canWriteRTR(ch, Txid);
+	int ret = canWriteRTR(TxHandle, Txid);
 
 	return ret;
 }
@@ -495,7 +493,7 @@ int request_hand_information(int ch)
 int request_hand_serial(int ch)
 {
 	long Txid = ID_RTR_SERIAL;
-	int ret = canWriteRTR(ch, Txid);
+	int ret = canWriteRTR(TxHandle, Txid);
 
 	return ret;
 }
@@ -505,7 +503,7 @@ int request_finger_pose(int ch, int findex)
 	assert(findex >= 0 && findex < NUM_OF_FINGERS);
 
 	long Txid = ID_RTR_FINGER_POSE + findex;
-	int ret = canWriteRTR(ch, Txid);
+	int ret = canWriteRTR(TxHandle, Txid);
 
 	return ret;
 }
@@ -513,7 +511,7 @@ int request_finger_pose(int ch, int findex)
 int request_imu_data(int ch)
 {
 	long Txid = ID_RTR_IMU_DATA;
-	int ret = canWriteRTR(ch, Txid);
+	int ret = canWriteRTR(TxHandle, Txid);
 
 	return ret;
 }
@@ -523,11 +521,10 @@ int request_temperature(int ch, int sindex)
 	assert(sindex >= 0 && sindex < NUM_OF_TEMP_SENSORS);
 
 	long Txid = ID_RTR_TEMPERATURE + sindex;
-	int ret = canWriteRTR(ch, Txid);
+	int ret = canWriteRTR(TxHandle, Txid);
 
 	return ret;
 }
-
 
 int get_message(int ch, int* id, int* len, unsigned char* data, int blocking)
 {
@@ -550,7 +547,6 @@ int get_message(int ch, int* id, int* len, unsigned char* data, int blocking)
 
 	return 0;
 }
-
 
 
 CANAPI_END
